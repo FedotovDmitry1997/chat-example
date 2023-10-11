@@ -14,6 +14,7 @@ public class ClientHandler {
     private DataOutputStream out;
 
     private String username;
+    private User user;
 
     private static int userCount = 0;
 
@@ -51,11 +52,12 @@ public class ClientHandler {
                 case "/auth": {
                     String login = args[1];
                     String password = args[2];
-                    String username = server.getAuthenticationProvider().getUsernameByLoginAndPassword(login, password);
-                    if (username == null || username.isBlank()) {
+                    User user = server.getAuthenticationProvider().getUserByLoginAndPassword(login, password);
+                    if (user == null) {
                         sendMessage("Указан неверный логин/пароль");
                     } else {
-                        this.username = username;
+                        this.username = user.getUsername();
+                        this.user = user;
                         sendMessage(username + ", добро пожаловать в чат!");
                         server.subscribe(this);
                         isAuthenticated = true;
@@ -66,14 +68,26 @@ public class ClientHandler {
                     String login = args[1];
                     String nick = args[2];
                     String password = args[3];
-                    boolean isRegistred = server.getAuthenticationProvider().register(login, password, nick);
-                    if (!isRegistred) {
-                        sendMessage("Указанный логин/никнейм уже заняты");
+                    boolean isSuccess = true;
+                    User user = null;
+                    if (UserRole.ADMIN.getRole().equals(args[4])) {
+                        user = server.getAuthenticationProvider().register(login, password, nick, UserRole.ADMIN);
+                    } else if (UserRole.USER.getRole().equals((args[4]))) {
+                        user = server.getAuthenticationProvider().register(login, password, nick, UserRole.USER);
                     } else {
-                        this.username = nick;
-                        sendMessage(nick + ", добро пожаловать в чат!");
-                        server.subscribe(this);
-                        isAuthenticated = true;
+                        sendMessage("Неверно указана роль. Доступные роли: admin, user.");
+                        isSuccess = false;
+                    }
+                    if (isSuccess) {
+                        if (user == null) {
+                            sendMessage("Указанный логин/никнейм уже заняты");
+                        } else {
+                            this.username = nick;
+                            this.user = user;
+                            sendMessage(nick + ", добро пожаловать в чат!");
+                            server.subscribe(this);
+                            isAuthenticated = true;
+                        }
                     }
                     break;
                 }
@@ -92,6 +106,8 @@ public class ClientHandler {
             String message = in.readUTF();
             if (message.startsWith("/")) {
                 if (message.equals("/exit")) {
+                    sendMessage("Вы вышли из чата");
+                    disconnect();
                     break;
                 } else if (message.equals("/list")) {
                     List<String> userList = server.getUserList();
@@ -103,8 +119,17 @@ public class ClientHandler {
                     String[] splitMessage = message.split(" ", 3);
                     String user =  message.split(" ")[1];
                     server.sendMessageToUser(user, splitMessage[2]);
+                } else if (message.startsWith("/kick")) {
+                    if (user.getUserRole().equals(UserRole.ADMIN)) {
+                        String[] splitMessage = message.split(" ");
+                        server.kickUser(splitMessage[1]);
+                    } else {
+                        server.sendMessageToUser(this.username, "У вас нет прав");
+                    }
+
 
                 }
+
             } else {
                 server.broadcastMessage("Server: " + message);
             }
