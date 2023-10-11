@@ -1,7 +1,7 @@
 package org.example;
 
 public interface AuthenticationProvider {
-    String getUsernameByLoginAndPassword(String login, String password);
+    User getUserByLoginAndPassword(String login, String password);
 
-    boolean register(String login, String password, String username);
+    User register(String login, String password, String username, UserRole userRole);
 }

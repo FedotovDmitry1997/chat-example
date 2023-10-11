@@ -34,7 +34,7 @@ public class Main extends JFrame implements Runnable {
                 {
                     String text = inTextField.getText();
                     try {
-                        network.sendMeassage(text);
+                        network.sendMessage(text);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -57,7 +57,7 @@ public class Main extends JFrame implements Runnable {
             Scanner scanner = new Scanner(System.in);
             while (true) {
                 String msg = scanner.nextLine();
-                network.sendMeassage(msg);
+                network.sendMessage(msg);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

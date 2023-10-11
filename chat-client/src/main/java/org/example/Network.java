@@ -30,7 +30,8 @@ public class Network implements AutoCloseable {
                     }
                 }
             } catch (IOException e) {
-                throw new RuntimeException(e);
+//                throw new RuntimeException(e);
+                System.out.println("Соединение закрыто");
             } finally {
                 close();
             }
@@ -62,7 +63,7 @@ public class Network implements AutoCloseable {
         }
     }
 
-    public void sendMeassage(String msg) throws IOException {
+    public void sendMessage(String msg) throws IOException {
         out.writeUTF(msg);
     }
 }

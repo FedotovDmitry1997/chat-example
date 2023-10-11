@@ -39,7 +39,15 @@ public class Server {
         clients.add(clientHandler);
         broadcastMessage("Клиент: " + clientHandler.getUsername() + " вошел в чат");
     }
+    public synchronized void kickUser(String name) {
+        sendMessageToUser(name, "Вы отключены от сервера");
+        for (ClientHandler handler : clients) {
+            if (name.equals(handler.getUsername())) {
+                handler.disconnect();
+            }
+        }
 
+    }
     public synchronized void broadcastMessage(String message) {
         for (ClientHandler client : clients) {
             client.sendMessage(message);
